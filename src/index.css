@@ -84,3 +84,17 @@
     right: 0.5rem;
   }
 }
+/* ChatPage 환영 인사 -> 공지사항 css */
+.notice-link {
+  display: inline-block;
+  margin-top: 6px;
+  color: #2e6ce0;
+  text-decoration: underline;
+  font-weight: 500;
+  transition: 0.2s;
+}
+
+.notice-link:hover {
+  color: #1b4fa3;
+  text-decoration: none;
+}
