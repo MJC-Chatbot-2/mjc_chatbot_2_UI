@@ -363,3 +363,18 @@
 .messages-container::-webkit-scrollbar-thumb:hover {
     background: rgba(102, 126, 234, 0.5);
 }
+
+/* 환영 인사/공지사항 */
+.notice-link {
+  display: inline-block;
+  margin-top: 6px;
+  color: #2e6ce0;
+  text-decoration: underline;
+  font-weight: 500;
+  transition: 0.2s;
+}
+
+.notice-link:hover {
+  color: #1b4fa3;
+  text-decoration: none;
+}

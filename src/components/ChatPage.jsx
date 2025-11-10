@@ -4,6 +4,7 @@ import ChatBackground from './ChatBackground';
 import './ChatPage.css';
 
 const API_BASE_URL = 'http://localhost:8000';
+const NOTICE_API_URL = 'http://localhost:8010/api/notice/latest';
 
 function ChatPage() {
     const { chatId } = useParams();
@@ -24,13 +25,60 @@ function ChatPage() {
 
     // 초기 환영 메시지
     useEffect(() => {
-        setMessages([
-            {
-                role: 'ai',
-                content: '안녕하세요! 명지전문대학 학사챗봇입니다. 무엇을 도와드릴까요?',
-                timestamp: new Date()
+        const fetchNotice = async () => {
+            try {
+                const res = await fetch(NOTICE_API_URL);
+                const data = await res.json();
+                if (data.status === "success" && data.notice) {
+                    const { title, link } = data.notice;
+                    setMessages([
+                        {
+                            role: "ai",
+                            content: (
+                                <div>
+                                    <div>안녕하세요! 명지전문대학 학사챗봇입니다.</div>
+                                    <div style={{ marginTop: "10px" }}>
+                                        <strong>공지 사항 [{title}]</strong>
+                                    </div>
+                                    <a href={link} target="_blank" rel="noopener noreferrer" className="notice-link">
+                                        공지 바로가기    
+                                    </a>    
+                                </div>
+                            ), 
+                            timestamp: new Date(),  
+                        },
+                    ]);
+                } else {
+                    setMessages([
+                        {
+                            role: "ai",
+                            content: (
+                                <div>
+                                    안녕하세요! 명지전문대학 학사챗봇입니다.<br />
+                                    현재 공지 정보를 불러올 수 없습니다.
+                                </div>
+                            ),
+                            timestamp: new Date(),
+                        },
+                    ]);
+                }
+            } catch (error) {
+                console.error("공지 불러오기 실패:", error);
+                setMessages([
+                    {
+                        role: "ai",
+                        content: (
+                            <div>
+                                안녕하세요! 명지전문대학 학사챗봇입니다.<br />
+                                (공지 정보를 불러오지 못했습니다.)
+                            </div>
+                        ),
+                        timestamp: new Date(),
+                    },
+                ]);
             }
-        ]);
+        };
+        fetchNotice();
     }, []);
 
     const sendMessage = async () => {
@@ -157,7 +205,11 @@ function ChatPage() {
                                 </div>
                             )}
                             <div className="message-content">
-                                <div className="message-text">{message.content}</div>
+                                <div className="message-text">
+                                    {typeof message.content === "string"
+                                        ? message.content
+                                        : message.content}
+                                </div>
                                 <div className="message-time">
                                     {message.timestamp.toLocaleTimeString()}
                                 </div>
