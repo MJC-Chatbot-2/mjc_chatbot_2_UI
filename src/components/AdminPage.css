@@ -1,0 +1,268 @@
+.admin-page {
+  min-height: 100vh;
+  padding: 24px 32px;
+  background: #f5f7fb;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.admin-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2933;
+}
+
+.admin-subtitle {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.admin-home-button {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: none;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+  transition: transform 0.08s ease, box-shadow 0.08s ease, opacity 0.08s ease;
+}
+
+.admin-home-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+.admin-home-button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(37, 99, 235, 0.3);
+  opacity: 0.9;
+}
+
+/* 필터 영역 */
+
+.admin-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 32px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+.admin-filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+}
+
+.filter-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4b5563;
+  white-space: nowrap;
+}
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  font-size: 13px;
+  color: #4b5563;
+  cursor: pointer;
+  transition: background 0.08s ease, color 0.08s ease, border-color 0.08s ease,
+    box-shadow 0.08s ease;
+}
+
+.chip:hover {
+  border-color: #cbd5f5;
+  background: #eff4ff;
+  color: #1d4ed8;
+}
+
+.chip-active {
+  border-color: #2563eb;
+  background: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.35);
+}
+
+.chip-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 요약 카드 */
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.metric-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.metric-card h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.metric-value {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.metric-unit {
+  margin-left: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.metric-caption {
+  margin: 0;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* 차트 섹션 */
+
+.chart-section {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 18px 20px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+.chart-header h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.chart-description {
+  margin: 6px 0 16px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.chart-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chart-empty {
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.chart-row {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr) 140px;
+  align-items: center;
+  gap: 10px;
+}
+
+.chart-row-label {
+  font-size: 13px;
+  color: #4b5563;
+}
+
+.chart-row-bar-wrapper {
+  position: relative;
+  height: 18px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  overflow: hidden;
+}
+
+.chart-row-bar {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #2563eb, #4f46e5);
+  transition: width 0.2s ease-out;
+}
+
+.chart-row-value {
+  text-align: right;
+  font-size: 13px;
+  color: #374151;
+}
+
+/* 반응형 */
+
+@media (max-width: 960px) {
+  .metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .chart-row {
+    grid-template-columns: 120px minmax(0, 1fr) 120px;
+  }
+}
+
+@media (max-width: 720px) {
+  .admin-page {
+    padding: 16px;
+  }
+
+  .admin-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-filters {
+    padding: 12px 14px;
+  }
+
+  .chart-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .chart-row-value {
+    text-align: left;
+  }
+}
