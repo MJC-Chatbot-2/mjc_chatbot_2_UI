@@ -2,94 +2,128 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './AdminPage.css';
 
+const MODE_LABELS = {
+  all: '전체',
+  max: '최대',
+  avg: '평균',
+};
+
+const createEmptyStats = () => ({
+  total: 0,
+  max: 0,
+  avg: 0,
+});
+
+const computeStats = (data, key) => {
+  const values = data.map((d) => d[key] || 0);
+  const total = values.reduce((sum, value) => sum + value, 0);
+  const max = values.length ? Math.max(...values) : 0;
+  const avg = values.length ? Math.round(total / values.length) : 0;
+  return { total, max, avg };
+};
+
+const getValueByMode = (stats, mode) => {
+  if (!stats) return 0;
+  if (mode === 'max') return stats.max || 0;
+  if (mode === 'avg') return stats.avg || 0;
+  return stats.total || 0;
+};
+
+const getModeCaption = (mode, defaultCaption) => {
+  if (mode === 'max') return '선택 기간 내 최대값';
+  if (mode === 'avg') return '선택 기간 내 평균값';
+  return defaultCaption;
+};
+
+const getUnitLabel = (mode) =>
+  mode === 'avg' ? 'tokens / 구간' : 'tokens';
+
 const AdminPage = () => {
   const navigate = useNavigate();
 
   const [timeframe, setTimeframe] = useState('daily'); // daily | weekly | monthly | yearly
   const [viewMode, setViewMode] = useState('all'); // all | department | student | staff
   const [chartData, setChartData] = useState([]);
+  const [totalMode, setTotalMode] = useState('all');
+  const [requestMode, setRequestMode] = useState('all');
+  const [responseMode, setResponseMode] = useState('all');
   const [summary, setSummary] = useState({
-    totalTokens: 0,
-    avgTokens: 0,
-    maxTokens: 0,
+    tokens: createEmptyStats(),
+    requestTokens: createEmptyStats(),
+    responseTokens: createEmptyStats(),
     periodLabel: '',
   });
+  
 
-  // 🔹 실제로는 여기를 API 연동으로 교체하면 됨
-  const mockDailyData = [
-    { label: '2025-11-17', tokens: 13240 },
-    { label: '2025-11-18', tokens: 15890 },
-    { label: '2025-11-19', tokens: 12110 },
-    { label: '2025-11-20', tokens: 18720 },
-    { label: '2025-11-21', tokens: 20430 },
-  ];
-
-  const mockWeeklyData = [
-    { label: '2025년 10월 4주차', tokens: 80230 },
-    { label: '2025년 11월 1주차', tokens: 92110 },
-    { label: '2025년 11월 2주차', tokens: 103420 },
-    { label: '2025년 11월 3주차', tokens: 112380 },
-  ];
-
-  const mockMonthlyData = [
-    { label: '2025년 8월', tokens: 212340 },
-    { label: '2025년 9월', tokens: 243120 },
-    { label: '2025년 10월', tokens: 268900 },
-    { label: '2025년 11월', tokens: 301450 },
-  ];
-
-  const mockYearlyData = [
-    { label: '2022년', tokens: 512340 },
-    { label: '2023년', tokens: 934210 },
-    { label: '2024년', tokens: 1423450 },
-    { label: '2025년', tokens: 1768920 },
-  ];
-
-  // timeframe, viewMode 변경 시마다 데이터 세팅
   useEffect(() => {
-    let data = [];
-    let periodLabel = '';
+    const fetchData = async () => {
+      try {
+        // 🔧 백엔드 포트 맞게 수정
+        const API_BASE = 'http://localhost:8000';
+        const url = `${API_BASE}/api/admin/token-usage?period=${timeframe}`;
 
-    // 현재는 viewMode가 "전체" 기준만 의미 있음
-    switch (timeframe) {
-      case 'daily':
-        data = mockDailyData;
-        periodLabel = '최근 5일 기준';
-        break;
-      case 'weekly':
-        data = mockWeeklyData;
-        periodLabel = '최근 4주 기준';
-        break;
-      case 'monthly':
-        data = mockMonthlyData;
-        periodLabel = '최근 4개월 기준';
-        break;
-      case 'yearly':
-        data = mockYearlyData;
-        periodLabel = '연도별 전체 기준';
-        break;
-      default:
-        data = mockDailyData;
-        periodLabel = '최근 5일 기준';
-    }
+        console.log('호출 URL:', url);
 
-    const totalTokens = data.reduce((sum, d) => sum + d.tokens, 0);
-    const avgTokens = data.length ? Math.round(totalTokens / data.length) : 0;
-    const maxTokens = data.length
-      ? Math.max(...data.map((d) => d.tokens))
-      : 0;
+        const res = await fetch(url);
 
-    setChartData(data);
-    setSummary({
-      totalTokens,
-      avgTokens,
-      maxTokens,
-      periodLabel,
-    });
+        console.log('status:', res.status, res.statusText, 'content-type:', res.headers.get('content-type'));
+
+        if (!res.ok) {
+          // HTML 에러 본문을 찍어보자
+          const text = await res.text();
+          console.error('응답 본문(에러):', text);
+          throw new Error(`API error: ${res.status}`);
+        }
+
+        const json = await res.json();
+        console.log('응답 JSON:', json);
+
+        const items = json.items || [];
+
+        const mapped = items.map((item) => ({
+          label: item.period,
+          tokens: item.total_tokens || 0,
+          requestTokens: item.request_tokens || 0,
+          responseTokens: item.response_tokens || 0,
+        }));
+
+        let periodLabel = '';
+        if (timeframe === 'daily') periodLabel = '일별 사용량 기준';
+        if (timeframe === 'weekly') periodLabel = '주별 사용량 기준';
+        if (timeframe === 'monthly') periodLabel = '월별 사용량 기준';
+        if (timeframe === 'yearly') periodLabel = '연도별 사용량 기준';
+
+        const tokenStats = computeStats(mapped, 'tokens');
+        const requestStats = computeStats(mapped, 'requestTokens');
+        const responseStats = computeStats(mapped, 'responseTokens');
+
+        setChartData(mapped);
+        setSummary({
+          tokens: tokenStats,
+          requestTokens: requestStats,
+          responseTokens: responseStats,
+          periodLabel,
+        });
+      } catch (err) {
+        console.error('토큰 사용량 조회 실패:', err);
+        setChartData([]);
+        setSummary({
+          tokens: createEmptyStats(),
+          requestTokens: createEmptyStats(),
+          responseTokens: createEmptyStats(),
+          periodLabel: '데이터를 불러오지 못했습니다.',
+        });
+      }
+    };
+
+    fetchData();
   }, [timeframe, viewMode]);
 
-  const formatNumber = (num) =>
-    num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+  const formatNumber = (num = 0) =>
+    Number(num || 0)
+      .toString()
+      .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
   const handleGoHome = () => {
     navigate('/');
@@ -167,30 +201,75 @@ const AdminPage = () => {
       {/* 요약 카드 영역 */}
       <section className="metrics-grid">
         <div className="metric-card">
-          <h3>전체 토큰 사용량</h3>
+          <div className="metric-card-header">
+            <h3>전체 토큰 사용량</h3>
+            <div className="metric-toggle">
+              {['all', 'max', 'avg'].map((mode) => (
+                <button
+                  key={mode}
+                  className={`chip ${totalMode === mode ? 'chip-active' : ''}`}
+                  onClick={() => setTotalMode(mode)}
+                >
+                  {MODE_LABELS[mode]}
+                </button>
+              ))}
+            </div>
+          </div>
           <p className="metric-value">
-            {formatNumber(summary.totalTokens)}
-            <span className="metric-unit"> tokens</span>
+            {formatNumber(getValueByMode(summary.tokens, totalMode))}
+            <span className="metric-unit">{getUnitLabel(totalMode)}</span>
           </p>
-          <p className="metric-caption">{summary.periodLabel}</p>
+          <p className="metric-caption">
+            {getModeCaption(totalMode, summary.periodLabel)}
+          </p>
         </div>
 
         <div className="metric-card">
-          <h3>평균 토큰 사용량</h3>
+          <div className="metric-card-header">
+            <h3>요청 토큰량</h3>
+            <div className="metric-toggle">
+              {['all', 'max', 'avg'].map((mode) => (
+                <button
+                  key={mode}
+                  className={`chip ${requestMode === mode ? 'chip-active' : ''}`}
+                  onClick={() => setRequestMode(mode)}
+                >
+                  {MODE_LABELS[mode]}
+                </button>
+              ))}
+            </div>
+          </div>
           <p className="metric-value">
-            {formatNumber(summary.avgTokens)}
-            <span className="metric-unit"> tokens / 구간</span>
+            {formatNumber(getValueByMode(summary.requestTokens, requestMode))}
+            <span className="metric-unit">{getUnitLabel(requestMode)}</span>
           </p>
-          <p className="metric-caption">선택된 기간 단위 평균</p>
+          <p className="metric-caption">
+            {getModeCaption(requestMode, summary.periodLabel)}
+          </p>
         </div>
 
         <div className="metric-card">
-          <h3>최대 토큰 사용량</h3>
+          <div className="metric-card-header">
+            <h3>응답 토큰량</h3>
+            <div className="metric-toggle">
+              {['all', 'max', 'avg'].map((mode) => (
+                <button
+                  key={mode}
+                  className={`chip ${responseMode === mode ? 'chip-active' : ''}`}
+                  onClick={() => setResponseMode(mode)}
+                >
+                  {MODE_LABELS[mode]}
+                </button>
+              ))}
+            </div>
+          </div>
           <p className="metric-value">
-            {formatNumber(summary.maxTokens)}
-            <span className="metric-unit"> tokens</span>
+            {formatNumber(getValueByMode(summary.responseTokens, responseMode))}
+            <span className="metric-unit">{getUnitLabel(responseMode)}</span>
           </p>
-          <p className="metric-caption">가장 많이 사용된 구간</p>
+          <p className="metric-caption">
+            {getModeCaption(responseMode, summary.periodLabel)}
+          </p>
         </div>
       </section>
 
@@ -215,10 +294,9 @@ const AdminPage = () => {
             <p className="chart-empty">표시할 데이터가 없습니다.</p>
           ) : (
             chartData.map((item) => {
+              const maxTokenValue = summary.tokens.max || 0;
               const ratio =
-                summary.maxTokens > 0
-                  ? (item.tokens / summary.maxTokens) * 100
-                  : 0;
+                maxTokenValue > 0 ? (item.tokens / maxTokenValue) * 100 : 0;
               return (
                 <div className="chart-row" key={item.label}>
                   <div className="chart-row-label">{item.label}</div>

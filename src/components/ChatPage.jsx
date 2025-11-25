@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
 import ChatBackground from './ChatBackground';
 import './ChatPage.css';
 
@@ -14,7 +15,6 @@ function ChatPage() {
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef(null);
 
-    // 메시지 목록을 자동으로 스크롤
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
@@ -23,12 +23,12 @@ function ChatPage() {
         scrollToBottom();
     }, [messages]);
 
-    // 초기 환영 메시지
     useEffect(() => {
         const fetchNotice = async () => {
             try {
                 const res = await fetch(NOTICE_API_URL);
                 const data = await res.json();
+
                 if (data.status === "success" && data.notice) {
                     const { title, link } = data.notice;
                     setMessages([
@@ -36,16 +36,16 @@ function ChatPage() {
                             role: "ai",
                             content: (
                                 <div>
-                                    <div>안녕하세요! 명지전문대학 학사챗봇입니다.</div>
+                                    <div>안녕하세요! 명지전문대학 학사챗봇입니다...</div>
                                     <div style={{ marginTop: "10px" }}>
                                         <strong>공지 사항 [{title}]</strong>
                                     </div>
                                     <a href={link} target="_blank" rel="noopener noreferrer" className="notice-link">
-                                        공지 바로가기    
-                                    </a>    
+                                        공지 바로가기
+                                    </a>
                                 </div>
-                            ), 
-                            timestamp: new Date(),  
+                            ),
+                            timestamp: new Date(),
                         },
                     ]);
                 } else {
@@ -69,7 +69,7 @@ function ChatPage() {
                         role: "ai",
                         content: (
                             <div>
-                                안녕하세요! 명지전문대학 학사챗봇입니다.<br />
+                                안녕하세요! 명지전문대학 학사챗봇입니다...<br />
                                 (공지 정보를 불러오지 못했습니다.)
                             </div>
                         ),
@@ -90,19 +90,17 @@ function ChatPage() {
             timestamp: new Date()
         };
 
-        // 사용자 메시지 추가
         setMessages(prev => [...prev, userMessage]);
         setInputMessage('');
         setIsLoading(true);
 
         try {
-            // 채팅 히스토리 준비 (API용)
             const chatHistory = messages.map(msg => ({
                 role: msg.role === 'user' ? 'user' : 'assistant',
-                content: msg.content
+                content: typeof msg.content === "string" ? msg.content : ""
             }));
 
-            const response = await fetch(`${API_BASE_URL}/api/chat`, {
+            const response = await fetch(`${API_BASE_URL}/api/chat_v`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -118,7 +116,7 @@ function ChatPage() {
             if (data.success) {
                 const aiMessage = {
                     role: 'ai',
-                    content: data.response,
+                    content: data.response, // 문자열
                     timestamp: new Date()
                 };
                 setMessages(prev => [...prev, aiMessage]);
@@ -163,7 +161,7 @@ function ChatPage() {
     return (
         <ChatBackground>
             <div className="chat-container">
-                {/* 헤더 */}
+
                 <div className="chat-header">
                     <div className="flex items-center space-x-3">
                         <button 
@@ -181,7 +179,6 @@ function ChatPage() {
                     </button>
                 </div>
 
-                {/* 메시지 영역 */}
                 <div className="messages-container">
                     {messages.map((message, index) => (
                         <div
@@ -204,11 +201,14 @@ function ChatPage() {
                                     </div>
                                 </div>
                             )}
+
                             <div className="message-content">
                                 <div className="message-text">
-                                    {typeof message.content === "string"
-                                        ? message.content
-                                        : message.content}
+                                    {typeof message.content === "string" ? (
+                                        <ReactMarkdown>{message.content}</ReactMarkdown>
+                                    ) : (
+                                        message.content
+                                    )}
                                 </div>
                                 <div className="message-time">
                                     {message.timestamp.toLocaleTimeString()}
@@ -216,6 +216,7 @@ function ChatPage() {
                             </div>
                         </div>
                     ))}
+
                     {isLoading && (
                         <div className="message ai-message">
                             <div className="ai-avatar">
@@ -241,10 +242,10 @@ function ChatPage() {
                             </div>
                         </div>
                     )}
+
                     <div ref={messagesEndRef} />
                 </div>
 
-                {/* 입력 영역 */}
                 <div className="input-container">
                     <div className="input-wrapper">
                         <textarea
