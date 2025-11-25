@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import ChatBackground from './ChatBackground';
 import './ChatPage.css';
 
@@ -205,7 +206,12 @@ function ChatPage() {
                             <div className="message-content">
                                 <div className="message-text">
                                     {typeof message.content === "string" ? (
-                                        <ReactMarkdown>{message.content}</ReactMarkdown>
+                                        <ReactMarkdown
+                                            remarkPlugins={[remarkGfm]}
+                                            components={{
+                                                table: (props) => <table className="chat-table" {...props} />,}}>
+                                             {message.content}
+                                        </ReactMarkdown>
                                     ) : (
                                         message.content
                                     )}
