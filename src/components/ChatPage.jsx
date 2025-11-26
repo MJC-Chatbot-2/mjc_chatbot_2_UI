@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import ChatBackground from './ChatBackground';
@@ -11,10 +11,12 @@ const NOTICE_API_URL = 'http://localhost:8010/api/notice/latest';
 function ChatPage() {
     const { chatId } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const [messages, setMessages] = useState([]);
     const [inputMessage, setInputMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef(null);
+    const autoQuestionSent = useRef(false);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -37,7 +39,7 @@ function ChatPage() {
                             role: "ai",
                             content: (
                                 <div>
-                                    <div>안녕하세요! 명지전문대학 학사챗봇입니다...</div>
+                                    <div>안녕하세요! 명지전문대학 학사챗봇입니다.</div>
                                     <div style={{ marginTop: "10px" }}>
                                         <strong>공지 사항 [{title}]</strong>
                                     </div>
@@ -70,7 +72,7 @@ function ChatPage() {
                         role: "ai",
                         content: (
                             <div>
-                                안녕하세요! 명지전문대학 학사챗봇입니다...<br />
+                                안녕하세요! 명지전문대학 학사챗봇입니다.<br />
                                 (공지 정보를 불러오지 못했습니다.)
                             </div>
                         ),
@@ -82,12 +84,13 @@ function ChatPage() {
         fetchNotice();
     }, []);
 
-    const sendMessage = async () => {
-        if (!inputMessage.trim() || isLoading) return;
+    const sendMessage = useCallback(async (messageToSend = null) => {
+        const message = messageToSend || inputMessage.trim();
+        if (!message || isLoading) return;
 
         const userMessage = {
             role: 'user',
-            content: inputMessage.trim(),
+            content: message,
             timestamp: new Date()
         };
 
@@ -107,7 +110,7 @@ function ChatPage() {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    message: inputMessage.trim(),
+                    message: message,
                     chat_history: chatHistory
                 })
             });
@@ -140,7 +143,19 @@ function ChatPage() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [messages, isLoading]);
+
+    // 자동 질문 처리
+    useEffect(() => {
+        const autoQuestion = location.state?.autoQuestion;
+        if (autoQuestion && !autoQuestionSent.current && messages.length > 0) {
+            // 공지사항이 로드된 후 자동 질문 전송
+            autoQuestionSent.current = true;
+            setTimeout(() => {
+                sendMessage(autoQuestion);
+            }, 500); // 공지사항 표시 후 약간의 딜레이
+        }
+    }, [messages, location.state, sendMessage]);
 
     const handleKeyPress = (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
@@ -150,6 +165,7 @@ function ChatPage() {
     };
 
     const clearChat = () => {
+        autoQuestionSent.current = false;
         setMessages([
             {
                 role: 'ai',
@@ -189,7 +205,7 @@ function ChatPage() {
                             {message.role === 'ai' && (
                                 <div className="ai-avatar">
                                     <img 
-                                        src="/mjc-logo.png" 
+                                        src="/자산 1.svg" 
                                         alt="MJC AI" 
                                         className="avatar-image"
                                         onError={(e) => {
@@ -227,7 +243,7 @@ function ChatPage() {
                         <div className="message ai-message">
                             <div className="ai-avatar">
                                 <img 
-                                    src="/mjc-logo.png" 
+                                    src="/자산 1.svg" 
                                     alt="MJC AI" 
                                     className="avatar-image"
                                     onError={(e) => {

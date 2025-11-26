@@ -9,7 +9,7 @@ const Dashboard = () => {
     name: '김학생',
     studentId: '2024123456',
     department: '컴퓨터공학과',
-    avatar: '/mjc-logo.png'
+    avatar: '/자산 1.svg'
   });
 
   const [recentChats] = useState([
@@ -82,18 +82,9 @@ const Dashboard = () => {
             {/* 햄버거 메뉴 버튼 */}
             <button
               onClick={toggleSidebar}
-              className="hamburger-btn p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+              className="hamburger-btn"
             >
-              <img 
-                src="/자산 1.svg" 
-                alt="Menu" 
-                className="w-6 h-6"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'block';
-                }}
-              />
-              <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{display: 'none'}}>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
@@ -107,17 +98,8 @@ const Dashboard = () => {
             onClick={handleNewChat}
             className="new-chat-icon-btn p-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-full transition-all duration-200 shadow-sm hover:shadow-md"
           >
-            <img 
-              src="/자산 1.svg" 
-              alt="New Chat" 
-              className="w-5 h-5"
-              onError={(e) => {
-                e.target.style.display = 'none';
-                e.target.nextSibling.style.display = 'block';
-              }}
-            />
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{display: 'none'}}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
             </svg>
           </button>
         </div>
@@ -162,25 +144,25 @@ const Dashboard = () => {
             <p className="quick-questions-title">빠른 질문</p>
             <div className="question-chips">
               <button 
-                onClick={() => navigate('/chat')}
+                onClick={() => navigate('/chat', { state: { autoQuestion: '졸업 요건이 궁금해요' } })}
                 className="question-chip"
               >
                 졸업 요건이 궁금해요
               </button>
               <button 
-                onClick={() => navigate('/chat')}
+                onClick={() => navigate('/chat', { state: { autoQuestion: '수강신청 도움받기' } })}
                 className="question-chip"
               >
                 수강신청 도움받기
               </button>
               <button 
-                onClick={() => navigate('/chat')}
+                onClick={() => navigate('/chat', { state: { autoQuestion: '장학금 정보' } })}
                 className="question-chip"
               >
                 장학금 정보
               </button>
               <button 
-                onClick={() => navigate('/chat')}
+                onClick={() => navigate('/chat', { state: { autoQuestion: '학사일정 확인' } })}
                 className="question-chip"
               >
                 학사일정 확인
@@ -206,7 +188,7 @@ const Dashboard = () => {
               <img 
                 src={user.avatar} 
                 alt="Profile" 
-                className="w-8 h-8 rounded-full object-cover"
+                className="w-8 h-8 rounded-full object-contain"
                 onError={(e) => {
                   e.target.style.display = 'none';
                   e.target.nextSibling.style.display = 'flex';
@@ -248,11 +230,6 @@ const Dashboard = () => {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2 mb-1">
                         <h5 className="chat-title font-medium text-gray-900 truncate">{chat.title}</h5>
-                        {chat.unread > 0 && (
-                          <span className="unread-badge bg-blue-500 text-white rounded-full flex items-center justify-center">
-                            {chat.unread}
-                          </span>
-                        )}
                       </div>
                       <p className="chat-message text-gray-500 truncate">{chat.lastMessage}</p>
                       <p className="chat-timestamp text-gray-400 mt-1">{chat.timestamp}</p>
