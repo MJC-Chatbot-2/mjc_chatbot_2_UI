@@ -4,7 +4,7 @@
     flex-direction: column;
     height: 100vh;
     background: transparent;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
 }
 
 .chat-header {
@@ -140,6 +140,10 @@
     line-height: 1.4;
     margin-bottom: 0.25rem;
     white-space: pre-wrap;
+}
+
+.ai-message .message-text {
+    color: #000000;
 }
 
 .message-time {

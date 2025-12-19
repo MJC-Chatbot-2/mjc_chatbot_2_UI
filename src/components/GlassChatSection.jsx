@@ -162,14 +162,18 @@ const GlassChatSection = () => {
                 type="text"
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSendMessage();
+                  }
+                }}
                 placeholder="학사 관련 질문을 입력하세요..."
                 className="w-full px-3 xs:px-4 py-2 xs:py-3 bg-white border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm resize-none text-gray-800 placeholder-gray-500"
                 style={{ minHeight: '44px' }}
               />
             </div>
             <button
-              onClick={handleSendMessage}
+              onClick={() => handleSendMessage()}
               disabled={!inputMessage.trim()}
               className="bg-blue-500 hover:bg-blue-600 active:bg-blue-700 disabled:bg-gray-300 text-white p-2 xs:p-3 rounded-full transition-all duration-200 disabled:cursor-not-allowed touch-manipulation flex-shrink-0"
               style={{ minHeight: '44px', minWidth: '44px' }}

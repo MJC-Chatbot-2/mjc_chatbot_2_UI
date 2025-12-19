@@ -1,68 +1,227 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '../contexts/UserContext';
+import { fetchChatSessions, createChatSession, deleteChatSession } from '../utils/chatApi';
+import ConfirmDialog from './ConfirmDialog';
 import './Dashboard.css';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { userInfo, isLoadingUser } = useUser();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [user] = useState({
-    name: '김학생',
-    studentId: '2024123456',
-    department: '컴퓨터공학과',
-    avatar: '/자산 1.svg'
-  });
-
-  const [recentChats] = useState([
-    {
-      id: 1,
-      title: '졸업 요건에 대해 알려주세요',
-      lastMessage: '졸업 요건은 총 130학점 이상 이수해야 합니다.',
-      timestamp: '2024-01-15 14:30',
-      unread: 0
-    },
-    {
-      id: 2,
-      title: '수강신청 도움을 받고 싶어요',
-      lastMessage: '수강신청은 2월 15일부터 시작됩니다.',
-      timestamp: '2024-01-14 09:15',
-      unread: 2
-    },
-    {
-      id: 3,
-      title: '장학금 신청 방법이 궁금해요',
-      lastMessage: '성적 장학금 신청 방법을 알려드리겠습니다.',
-      timestamp: '2024-01-13 16:45',
-      unread: 1
-    },
-    {
-      id: 4,
-      title: '학사일정을 확인하고 싶어요',
-      lastMessage: '2024년 1학기 학사일정을 확인해드리겠습니다.',
-      timestamp: '2024-01-12 11:20',
-      unread: 0
-    },
-    {
-      id: 5,
-      title: '휴학 신청 절차가 궁금해요',
-      lastMessage: '휴학 신청은 학사지원팀에서 접수받습니다.',
-      timestamp: '2024-01-11 10:30',
-      unread: 0
-    },
-    {
-      id: 6,
-      title: '성적 확인 방법을 알려주세요',
-      lastMessage: '성적은 포털시스템에서 확인할 수 있습니다.',
-      timestamp: '2024-01-10 15:20',
-      unread: 0
+  
+  // 유저 정보 처리: 이름이 비어있으면 "김학생"으로 표시
+  const user = useMemo(() => {
+    if (!userInfo) {
+      return {
+        name: '김학생',
+        studentId: '-',
+        avatar: '/자산 1.svg'
+      };
     }
-  ]);
+    return {
+      name: userInfo.name || '김학생',
+      studentId: userInfo.student_no || '-',
+      avatar: '/자산 1.svg'
+    };
+  }, [userInfo]);
+
+  const [recentChats, setRecentChats] = useState([]);
+  const [isLoadingChats, setIsLoadingChats] = useState(true);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [sessionToDelete, setSessionToDelete] = useState(null);
+
+  // 최근 대화기록 로드
+  const loadChatSessions = async () => {
+    if (!userInfo?.id) {
+      setIsLoadingChats(false);
+      return;
+    }
+
+    try {
+      setIsLoadingChats(true);
+      const data = await fetchChatSessions(userInfo.id);
+      
+      if (data.success && data.sessions) {
+        // 세션 데이터를 컴포넌트 형식으로 변환
+        const formattedChats = data.sessions.map(session => {
+          const date = new Date(session.updated_at || session.created_at);
+          const now = new Date();
+          const diffMs = now - date;
+          const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+          
+          let timestampStr = '';
+          if (diffDays === 0) {
+            // 오늘
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            timestampStr = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+          } else if (diffDays === 1) {
+            timestampStr = '어제';
+          } else if (diffDays < 7) {
+            timestampStr = `${diffDays}일 전`;
+          } else {
+            timestampStr = date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
+          }
+
+          return {
+            id: session.id,
+            title: session.title || '새로운 채팅',
+            lastMessage: '', // 마지막 메시지는 별도로 가져와야 함
+            timestamp: timestampStr,
+            unread: 0
+          };
+        });
+        setRecentChats(formattedChats);
+      }
+    } catch (error) {
+      console.error('[Dashboard] 채팅 세션 로드 실패:', error);
+      setRecentChats([]);
+    } finally {
+      setIsLoadingChats(false);
+    }
+  };
+
+  useEffect(() => {
+    loadChatSessions();
+  }, [userInfo]);
 
   const handleChatClick = (chatId) => {
     navigate(`/chat/${chatId}`);
   };
 
-  const handleNewChat = () => {
-    navigate('/chat');
+  const handleNewChat = async () => {
+    if (!userInfo?.id) {
+      console.error('[Dashboard] 사용자 정보가 없습니다.');
+      return;
+    }
+
+    try {
+      // 현재 세션 개수 확인
+      const data = await fetchChatSessions(userInfo.id);
+      
+      if (data.success && data.count >= 10) {
+        // 10개 이상이면 확인 다이얼로그 표시
+        setPendingAction(() => async () => {
+          // 가장 오래된 세션을 삭제하고 새 세션 생성
+          // 백엔드에서 자동으로 처리하므로 그냥 생성하면 됨
+          await createNewChatSession();
+        });
+        setShowConfirmDialog(true);
+      } else {
+        // 10개 미만이면 바로 생성
+        await createNewChatSession();
+      }
+    } catch (error) {
+      console.error('[Dashboard] 새 채팅 생성 실패:', error);
+      alert('새 채팅을 생성하는 중 오류가 발생했습니다.');
+    }
+  };
+
+  const createNewChatSession = async () => {
+    try {
+      const data = await createChatSession(userInfo.id, null);
+      
+      if (data.success && data.session) {
+        // 새 세션으로 이동
+        navigate(`/chat/${data.session.id}`);
+      } else {
+        throw new Error('세션 생성 실패');
+      }
+    } catch (error) {
+      console.error('[Dashboard] 세션 생성 실패:', error);
+      throw error;
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    setShowConfirmDialog(false);
+    if (pendingAction) {
+      await pendingAction();
+      setPendingAction(null);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowConfirmDialog(false);
+    setPendingAction(null);
+  };
+
+  const handleDeleteClick = (e, chatId) => {
+    e.stopPropagation(); // 채팅 클릭 이벤트 방지
+    setSessionToDelete(chatId);
+    setShowDeleteDialog(true);
+  };
+
+  const handleConfirmDeleteSession = async () => {
+    if (!sessionToDelete) return;
+
+    try {
+      const data = await deleteChatSession(sessionToDelete);
+      
+      if (data.success) {
+        // 목록 새로고침
+        await loadChatSessions();
+        setShowDeleteDialog(false);
+        setSessionToDelete(null);
+      } else {
+        throw new Error('세션 삭제 실패');
+      }
+    } catch (error) {
+      console.error('[Dashboard] 세션 삭제 실패:', error);
+      alert('채팅을 삭제하는 중 오류가 발생했습니다.');
+      setShowDeleteDialog(false);
+      setSessionToDelete(null);
+    }
+  };
+
+  const handleCancelDeleteSession = () => {
+    setShowDeleteDialog(false);
+    setSessionToDelete(null);
+  };
+
+  const handleNewChatWithQuestion = async (question) => {
+    if (!userInfo?.id) {
+      console.error('[Dashboard] 사용자 정보가 없습니다.');
+      return;
+    }
+
+    try {
+      // 현재 세션 개수 확인
+      const data = await fetchChatSessions(userInfo.id);
+      
+      if (data.success && data.count >= 10) {
+        // 10개 이상이면 확인 다이얼로그 표시
+        setPendingAction(() => async () => {
+          await createNewChatSessionWithQuestion(question);
+        });
+        setShowConfirmDialog(true);
+      } else {
+        // 10개 미만이면 바로 생성
+        await createNewChatSessionWithQuestion(question);
+      }
+    } catch (error) {
+      console.error('[Dashboard] 새 채팅 생성 실패:', error);
+      alert('새 채팅을 생성하는 중 오류가 발생했습니다.');
+    }
+  };
+
+  const createNewChatSessionWithQuestion = async (question) => {
+    try {
+      const data = await createChatSession(userInfo.id, null);
+      
+      if (data.success && data.session) {
+        // 새 세션으로 이동 (자동 질문 포함)
+        navigate(`/chat/${data.session.id}`, { state: { autoQuestion: question } });
+      } else {
+        throw new Error('세션 생성 실패');
+      }
+    } catch (error) {
+      console.error('[Dashboard] 세션 생성 실패:', error);
+      throw error;
+    }
   };
 
   const toggleSidebar = () => {
@@ -84,21 +243,20 @@ const Dashboard = () => {
               onClick={toggleSidebar}
               className="hamburger-btn"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 hamburger-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
             <div>
-              <h1 className="user-name text-gray-900">MJC AI Chat</h1>
-              <p className="user-info text-gray-500">학사 챗봇</p>
+              <h1 className="user-name text-gray-900">명전이</h1>
             </div>
           </div>
           {/* 새 채팅 아이콘 버튼 */}
           <button
             onClick={handleNewChat}
-            className="new-chat-icon-btn p-2 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-full transition-all duration-200 shadow-sm hover:shadow-md"
+            className="new-chat-icon-btn"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 pencil-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
             </svg>
           </button>
@@ -144,25 +302,37 @@ const Dashboard = () => {
             <p className="quick-questions-title">빠른 질문</p>
             <div className="question-chips">
               <button 
-                onClick={() => navigate('/chat', { state: { autoQuestion: '졸업 요건이 궁금해요' } })}
+                onClick={async () => {
+                  const question = '졸업 요건이 궁금해요';
+                  await handleNewChatWithQuestion(question);
+                }}
                 className="question-chip"
               >
                 졸업 요건이 궁금해요
               </button>
               <button 
-                onClick={() => navigate('/chat', { state: { autoQuestion: '수강신청 도움받기' } })}
+                onClick={async () => {
+                  const question = '수강신청 도움받기';
+                  await handleNewChatWithQuestion(question);
+                }}
                 className="question-chip"
               >
                 수강신청 도움받기
               </button>
               <button 
-                onClick={() => navigate('/chat', { state: { autoQuestion: '장학금 정보' } })}
+                onClick={async () => {
+                  const question = '장학금 정보';
+                  await handleNewChatWithQuestion(question);
+                }}
                 className="question-chip"
               >
                 장학금 정보
               </button>
               <button 
-                onClick={() => navigate('/chat', { state: { autoQuestion: '학사일정 확인' } })}
+                onClick={async () => {
+                  const question = '학사일정 확인';
+                  await handleNewChatWithQuestion(question);
+                }}
                 className="question-chip"
               >
                 학사일정 확인
@@ -216,17 +386,24 @@ const Dashboard = () => {
         <div className="sidebar-content">
           <div className="mb-4">
             <h4 className="text-sm font-semibold text-gray-700 mb-3">최근 대화</h4>
-            <div className="space-y-1">
-              {recentChats.map((chat) => (
+            {isLoadingChats ? (
+              <div className="text-center py-4 text-gray-500">로딩 중...</div>
+            ) : recentChats.length === 0 ? (
+              <div className="text-center py-4 text-gray-500">대화 기록이 없습니다.</div>
+            ) : (
+              <div className="space-y-1">
+                {recentChats.map((chat) => (
                 <div
                   key={chat.id}
-                  onClick={() => {
-                    handleChatClick(chat.id);
-                    closeSidebar();
-                  }}
-                  className="chat-item bg-white rounded-lg hover:bg-gray-50 transition-colors duration-150 cursor-pointer border border-gray-100"
+                  className="chat-item bg-white rounded-lg hover:bg-gray-50 transition-colors duration-150 cursor-pointer border border-gray-100 relative group"
                 >
-                  <div className="flex items-center justify-between">
+                  <div 
+                    onClick={() => {
+                      handleChatClick(chat.id);
+                      closeSidebar();
+                    }}
+                    className="flex items-center justify-between pr-8"
+                  >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2 mb-1">
                         <h5 className="chat-title font-medium text-gray-900 truncate">{chat.title}</h5>
@@ -240,12 +417,45 @@ const Dashboard = () => {
                       </svg>
                     </div>
                   </div>
+                  {/* 삭제 버튼 */}
+                  <button
+                    onClick={(e) => handleDeleteClick(e, chat.id)}
+                    className="absolute top-2 right-2 p-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150 hover:bg-red-100 rounded-full text-red-500"
+                    title="채팅 삭제"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
                 </div>
               ))}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      {/* 확인 다이얼로그 (10개 제한) */}
+      <ConfirmDialog
+        isOpen={showConfirmDialog}
+        title="채팅방 제한 안내"
+        message="채팅방은 최대 10개까지 생성할 수 있습니다. 가장 오래된 채팅방을 삭제하고 새 채팅방을 생성하시겠습니까?"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        confirmText="삭제하고 생성"
+        cancelText="취소"
+      />
+
+      {/* 삭제 확인 다이얼로그 */}
+      <ConfirmDialog
+        isOpen={showDeleteDialog}
+        title="채팅 삭제"
+        message="이 채팅을 삭제하시겠습니까? 삭제된 채팅은 복구할 수 없습니다."
+        onConfirm={handleConfirmDeleteSession}
+        onCancel={handleCancelDeleteSession}
+        confirmText="삭제"
+        cancelText="취소"
+      />
     </div>
   );
 };
