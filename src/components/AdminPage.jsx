@@ -59,7 +59,7 @@ const AdminPage = () => {
     const fetchData = async () => {
       try {
         // 🔧 백엔드 포트 맞게 수정
-        const API_BASE = 'http://localhost:8000';
+        const API_BASE = 'http://10.51.61.37:8000';
         const url = `${API_BASE}/api/admin/token-usage?period=${timeframe}`;
 
         console.log('호출 URL:', url);

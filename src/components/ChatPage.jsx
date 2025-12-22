@@ -3,18 +3,21 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import ChatBackground from './ChatBackground';
-import { useUser } from '../contexts/UserContext';
-import { fetchSessionMessages } from '../utils/chatApi';
+import { 
+    sendChatMessage, 
+    getLocalChatSession, 
+    addMessageToLocalSession,
+    createLocalChatSession,
+    setCurrentSessionId
+} from '../utils/chatApi';
 import './ChatPage.css';
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8000';
-const NOTICE_API_URL = 'http://localhost:8010/api/notice/latest';
+const NOTICE_API_URL = 'http://10.51.61.37:8010/api/notice/latest';
 
 function ChatPage() {
     const { chatId } = useParams();
     const navigate = useNavigate();
     const location = useLocation();
-    const { userInfo } = useUser();
     const [messages, setMessages] = useState([]);
     const [inputMessage, setInputMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -36,7 +39,7 @@ function ChatPage() {
         messagesRef.current = messages;
     }, [messages]);
 
-    // 세션이 있으면 대화기록 로드
+    // 세션이 있으면 로컬스토리지에서 대화기록 로드
     useEffect(() => {
         const loadSessionMessages = async () => {
             if (!sessionId) {
@@ -45,23 +48,22 @@ function ChatPage() {
                 return;
             }
 
-            try {
-                const data = await fetchSessionMessages(sessionId);
-                
-                if (data.success && data.messages && data.messages.length > 0) {
-                    // DB에서 가져온 메시지를 컴포넌트 형식으로 변환
-                    const formattedMessages = data.messages.map(msg => ({
-                        role: msg.role === 'user' ? 'user' : 'ai',
-                        content: msg.message,
-                        timestamp: new Date(msg.created_at)
-                    }));
-                    setMessages(formattedMessages);
-                } else {
-                    // 메시지가 없으면 공지사항 표시
-                    fetchNoticeOnly();
-                }
-            } catch (error) {
-                console.error('[ChatPage] 대화기록 로드 실패:', error);
+            // 현재 세션 ID 저장
+            setCurrentSessionId(sessionId);
+
+            // 로컬스토리지에서 세션 가져오기
+            const session = getLocalChatSession(sessionId);
+            
+            if (session && session.messages && session.messages.length > 0) {
+                // 로컬스토리지에서 가져온 메시지를 컴포넌트 형식으로 변환
+                const formattedMessages = session.messages.map(msg => ({
+                    role: msg.role === 'user' ? 'user' : 'ai',
+                    content: msg.content,
+                    timestamp: new Date(msg.timestamp)
+                }));
+                setMessages(formattedMessages);
+            } else {
+                // 메시지가 없으면 공지사항 표시
                 fetchNoticeOnly();
             }
         };
@@ -139,6 +141,24 @@ function ChatPage() {
         setInputMessage('');
         setIsLoading(true);
 
+        // 세션이 없으면 새로 생성
+        let currentSessionId = sessionId;
+        if (!currentSessionId) {
+            const newSession = createLocalChatSession();
+            currentSessionId = newSession.id;
+            setSessionId(currentSessionId);
+            setCurrentSessionId(currentSessionId);
+            // URL 업데이트
+            navigate(`/chat/${currentSessionId}`, { replace: true });
+        }
+
+        // 로컬스토리지에 사용자 메시지 저장
+        addMessageToLocalSession(currentSessionId, {
+            role: 'user',
+            content: message,
+            timestamp: new Date().toISOString()
+        });
+
         // 현재 메시지 목록 가져오기 (ref 사용)
         const currentMessages = [...messagesRef.current, userMessage];
         
@@ -150,28 +170,7 @@ function ChatPage() {
 
         // API 호출 (비동기 작업)
         try {
-            const requestBody = {
-                message: message,
-                chat_history: chatHistory
-            };
-
-            // session_id와 user_id 추가
-            if (sessionId) {
-                requestBody.session_id = sessionId;
-            }
-            if (userInfo?.id) {
-                requestBody.user_id = userInfo.id;
-            }
-
-            const response = await fetch(`${API_BASE_URL}/api/chat_v`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestBody)
-            });
-
-            const data = await response.json();
+            const data = await sendChatMessage(message, chatHistory);
 
             if (data.success) {
                 const aiMessage = {
@@ -180,6 +179,13 @@ function ChatPage() {
                     timestamp: new Date()
                 };
                 setMessages(prev => [...prev, aiMessage]);
+
+                // 로컬스토리지에 AI 응답 저장
+                addMessageToLocalSession(currentSessionId, {
+                    role: 'assistant',
+                    content: data.response,
+                    timestamp: new Date().toISOString()
+                });
             } else {
                 const errorMessage = {
                     role: 'ai',
@@ -199,7 +205,7 @@ function ChatPage() {
         } finally {
             setIsLoading(false);
         }
-    }, [inputMessage, isLoading]);
+    }, [inputMessage, isLoading, sessionId, navigate]);
 
     // 자동 질문 처리
     useEffect(() => {
@@ -257,7 +263,10 @@ function ChatPage() {
                         <h1>MJC AI Chat</h1>
                     </div>
                     <button className="clear-btn" onClick={clearChat}>
-                        🗑️ 초기화
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        <span>초기화</span>
                     </button>
                 </div>
 
@@ -350,7 +359,7 @@ function ChatPage() {
                             className="send-btn"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                             </svg>
                         </button>
                     </div>

@@ -134,29 +134,29 @@
 
 /* AI 아바타 (큰 사이즈) */
 .ai-avatar-large {
-  width: 120px;
-  height: 120px;
+  width: 180px;
+  height: 180px;
   margin: 0 auto 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 50%;
+  background: transparent;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+  box-shadow: none;
 }
 
 .avatar-image-large {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
+  width: 180px;
+  height: 180px;
+  border-radius: 0;
   object-fit: contain;
-  object-position: center top;
+  object-position: center center;
 }
 
 .avatar-fallback-large {
   width: 100px;
   height: 100px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #667eea;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -175,7 +175,7 @@
   font-weight: 700;
   color: #1f2937;
   margin-bottom: 0.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #667eea;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -193,7 +193,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #667eea;
   color: white;
   font-size: 1.125rem;
   font-weight: 600;
@@ -264,8 +264,14 @@
 
 /* 사이드바 오버레이 */
 .sidebar-overlay {
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* 사이드바 */
@@ -276,12 +282,12 @@
   width: 320px;
   height: 100vh;
   background: #ffffff;
-  border-right: 1px solid #e5e7eb;
-  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.05);
+  box-shadow: 4px 0 30px rgba(0, 0, 0, 0.1);
   z-index: 50;
   transform: translateX(-100%);
-  transition: all 0.3s ease-in-out;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   overflow-y: auto;
+  border-right: none;
 }
 
 .sidebar.sidebar-open {
@@ -290,12 +296,128 @@
 
 /* 사이드바 헤더 */
 .sidebar-header {
-  padding: 1.5rem 1rem;
-  border-bottom: 1px solid #f3f4f6;
+  padding: 1.25rem 1rem;
+  background: #667eea;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #fafbfc;
+  position: relative;
+  overflow: hidden;
+  min-height: 64px;
+}
+
+.sidebar-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  position: relative;
+  z-index: 2;
+}
+
+.sidebar-logo {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.sidebar-logo:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05) rotate(5deg);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.sidebar-logo-icon {
+  color: white;
+  width: 20px;
+  height: 20px;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-3px); }
+}
+
+.sidebar-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.sidebar-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: white;
+  margin: 0;
+  line-height: 1.2;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  letter-spacing: -0.02em;
+}
+
+.sidebar-subtitle {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+  line-height: 1.2;
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-header-right {
+  display: flex;
+  align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+/* 헤더 장식 원형 */
+.sidebar-header::before {
+  content: '';
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 120px;
+  height: 120px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+  animation: pulse 3s ease-in-out infinite;
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+}
+
+.sidebar-header::after {
+  content: '';
+  position: absolute;
+  bottom: -25px;
+  left: 10px;
+  width: 80px;
+  height: 80px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  animation: pulse 3s ease-in-out infinite 1s;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
+}
+
+/* 추가 장식 요소 */
+.sidebar-header {
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 50%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
+  background-color: #667eea;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.1); opacity: 0.8; }
 }
 
 .close-btn {
@@ -304,18 +426,29 @@
   justify-content: center;
   min-width: 36px;
   min-height: 36px;
-  background: #f3f4f6;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  color: #6b7280;
-  transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .close-btn:hover {
-  background: #e5e7eb;
-  border-color: #d1d5db;
-  color: #374151;
-  transform: scale(1.05);
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg) scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.close-btn:active {
+  transform: rotate(90deg) scale(0.95);
 }
 
 /* 사이드바 콘텐츠 */
@@ -323,89 +456,193 @@
   padding: 1.5rem 1rem;
   flex: 1;
   overflow-y: auto;
-  background: #ffffff;
+  background: linear-gradient(180deg, #fafbfc 0%, #ffffff 100%);
+  position: relative;
+}
+
+/* 콘텐츠 배경 패턴 */
+.sidebar-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20% 80%, rgba(102, 126, 234, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(102, 126, 234, 0.03) 0%, transparent 50%);
+  pointer-events: none;
 }
 
 /* 사이드바 섹션 제목 */
 .sidebar h4 {
   color: #374151;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  font-size: 0.875rem;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+  font-size: 0.8rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   display: flex;
   align-items: center;
+  position: relative;
+  z-index: 1;
 }
 
 .sidebar h4::before {
-  content: '';
-  width: 4px;
-  height: 16px;
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-  border-radius: 2px;
+  content: '💬';
+  font-size: 1rem;
   margin-right: 0.5rem;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
 }
 
 /* 사이드바 내부 채팅 아이템 */
 .sidebar .chat-item {
   margin-bottom: 0.75rem;
   padding: 1rem;
-  background: #ffffff;
-  border: 1px solid #f3f4f6;
-  border-radius: 12px;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
+  position: relative;
+  overflow: hidden;
+  animation: slideIn 0.4s ease backwards;
+}
+
+.sidebar .chat-item:nth-child(1) { animation-delay: 0.05s; }
+.sidebar .chat-item:nth-child(2) { animation-delay: 0.1s; }
+.sidebar .chat-item:nth-child(3) { animation-delay: 0.15s; }
+.sidebar .chat-item:nth-child(4) { animation-delay: 0.2s; }
+.sidebar .chat-item:nth-child(5) { animation-delay: 0.25s; }
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* 채팅 아이템 좌측 액센트 라인 */
+.sidebar .chat-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: #667eea;
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform 0.3s ease;
+  border-radius: 0 4px 4px 0;
+}
+
+.sidebar .chat-item:hover::before {
+  transform: scaleY(1);
+}
+
+/* 채팅 아이템 호버 빛나는 효과 */
+.sidebar .chat-item::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.08), transparent);
+  transition: left 0.5s ease;
+}
+
+.sidebar .chat-item:hover::after {
+  left: 100%;
 }
 
 .sidebar .chat-item:hover {
-  background: #f9fafb;
-  border-color: #e5e7eb;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: #c7d2fe;
+  transform: translateX(8px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
 }
 
 .sidebar .chat-title {
   font-size: 0.875rem;
-  line-height: 1.25;
-  color: #111827;
-  font-weight: 500;
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
+  line-height: 1.4;
+  color: #1f2937;
+  font-weight: 600;
+  position: relative;
+  z-index: 1;
+  transition: color 0.3s ease;
+}
+
+.sidebar .chat-item:hover .chat-title {
+  color: #667eea;
 }
 
 .sidebar .chat-message {
   font-size: 0.75rem;
-  line-height: 1.25;
-  color: #6b7280;
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
+  line-height: 1.4;
+  color: #9ca3af;
+  position: relative;
+  z-index: 1;
 }
 
 .sidebar .chat-timestamp {
-  font-size: 0.75rem;
-  color: #9ca3af;
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
+  font-size: 0.7rem;
+  color: #667eea;
+  font-weight: 600;
+  position: relative;
+  z-index: 1;
+  background: rgba(102, 126, 234, 0.1);
+  padding: 0.25rem 0.6rem;
+  border-radius: 20px;
+  display: inline-block;
+  transition: all 0.3s ease;
+}
+
+.sidebar .chat-item:hover .chat-timestamp {
+  background: #667eea;
+  color: white;
+  transform: scale(1.05);
+}
+
+/* 채팅 아이템 내 화살표 */
+.sidebar .chat-item svg {
+  color: #d1d5db;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.sidebar .chat-item:hover svg {
+  color: #667eea;
+  transform: translateX(4px);
+}
+
+/* 삭제 버튼 스타일 */
+.sidebar .chat-item button[title="채팅 삭제"] {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  z-index: 2;
+  transition: background-color 0.2s ease;
+}
+
+.sidebar .chat-item button[title="채팅 삭제"]:hover {
+  background: transparent;
 }
 
 /* 사이드바 내부 읽지 않음 배지 */
 .sidebar .unread-badge {
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
+  background: #667eea;
   color: white;
   font-size: 0.625rem;
   font-weight: 600;
@@ -415,7 +652,43 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+  animation: badgePulse 2s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+  0%, 100% { box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4); }
+  50% { box-shadow: 0 2px 15px rgba(102, 126, 234, 0.7); }
+}
+
+/* 빈 상태 스타일 */
+.sidebar .text-center.py-4 {
+  color: #9ca3af;
+  font-size: 0.875rem;
+  padding: 2.5rem 1rem;
+  text-align: center;
+  background: rgba(102, 126, 234, 0.03);
+  border-radius: 16px;
+  border: 2px dashed #e5e7eb;
+  position: relative;
+  z-index: 1;
+  animation: fadeInUp 0.5s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 로딩 텍스트 애니메이션 */
+.sidebar .text-center.py-4.text-gray-500 {
+  animation: pulse 1.5s ease-in-out infinite;
 }
 
 /* 모바일 최적화 */
@@ -473,21 +746,21 @@
   }
   
   .ai-avatar-large {
-    width: 100px;
-    height: 100px;
+    width: 150px;
+    height: 150px;
     margin-bottom: 1.5rem;
   }
   
   .avatar-image-large {
-    width: 80px;
-    height: 80px;
+    width: 150px;
+    height: 150px;
     object-fit: contain;
-    object-position: center top;
+    object-position: center center;
   }
   
   .avatar-fallback-large {
-    width: 80px;
-    height: 80px;
+    width: 150px;
+    height: 150px;
   }
   
   .avatar-text-large {
@@ -522,11 +795,41 @@
   
   /* 모바일 사이드바 */
   .sidebar {
-    width: 280px;
+    width: 85vw;
+    max-width: 320px;
   }
   
   .sidebar-header {
     padding: 1rem 0.75rem;
+    min-height: 60px;
+  }
+  
+  .sidebar-logo {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .sidebar-logo-icon {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .sidebar-title {
+    font-size: 0.9rem;
+  }
+  
+  .sidebar-subtitle {
+    font-size: 0.7rem;
+  }
+  
+  .close-btn {
+    min-width: 32px;
+    min-height: 32px;
+  }
+  
+  .close-btn svg {
+    width: 18px;
+    height: 18px;
   }
   
   .sidebar-content {
@@ -547,7 +850,7 @@
   }
   
   .sidebar .chat-timestamp {
-    font-size: 0.7rem;
+    font-size: 0.65rem;
   }
   
   .close-btn {
@@ -612,30 +915,47 @@
 
 /* 사이드바 스크롤 최적화 */
 .sidebar-content {
-  max-height: calc(100vh - 120px);
+  max-height: calc(100vh - 80px);
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
 
 /* 스크롤바 스타일링 */
-.chats-list::-webkit-scrollbar,
+.sidebar::-webkit-scrollbar,
 .sidebar-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track,
+.sidebar-content::-webkit-scrollbar-track {
+  background: #f3f4f6;
+}
+
+.sidebar::-webkit-scrollbar-thumb,
+.sidebar-content::-webkit-scrollbar-thumb {
+  background: #667eea;
+  border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover,
+.sidebar-content::-webkit-scrollbar-thumb:hover {
+  background: #5a67d8;
+}
+
+.chats-list::-webkit-scrollbar {
   width: 4px;
 }
 
-.chats-list::-webkit-scrollbar-track,
-.sidebar-content::-webkit-scrollbar-track {
+.chats-list::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.chats-list::-webkit-scrollbar-thumb,
-.sidebar-content::-webkit-scrollbar-thumb {
+.chats-list::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.1);
   border-radius: 2px;
 }
 
-.chats-list::-webkit-scrollbar-thumb:hover,
-.sidebar-content::-webkit-scrollbar-thumb:hover {
+.chats-list::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 0, 0, 0.2);
 }
 
@@ -653,7 +973,7 @@
 .new-chat-icon-btn:focus,
 .start-chat-btn:focus,
 .close-btn:focus {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid #667eea;
   outline-offset: 2px;
 }
 
@@ -661,49 +981,45 @@
 @media (prefers-color-scheme: dark) {
   .sidebar {
     background: #ffffff;
-    border-right: 1px solid #e5e7eb;
   }
   
   .sidebar-header {
-    background: #fafbfc;
-    border-bottom-color: #f3f4f6;
+    background: #667eea;
   }
   
   .sidebar-content {
-    background: #ffffff;
+    background: linear-gradient(180deg, #fafbfc 0%, #ffffff 100%);
   }
   
   .sidebar .chat-item {
-    background: #ffffff;
-    border-color: #f3f4f6;
+    background: white;
+    border-color: #e5e7eb;
   }
   
   .sidebar .chat-item:hover {
-    background: #f9fafb;
-    border-color: #e5e7eb;
+    background: white;
+    border-color: #c7d2fe;
   }
   
   .sidebar .chat-title {
-    color: #111827;
+    color: #1f2937;
   }
   
   .sidebar .chat-message {
-    color: #6b7280;
-  }
-  
-  .sidebar .chat-timestamp {
     color: #9ca3af;
   }
   
+  .sidebar .chat-timestamp {
+    color: #667eea;
+  }
+  
   .close-btn {
-    background: #f3f4f6;
-    border-color: #e5e7eb;
-    color: #6b7280;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
   }
   
   .close-btn:hover {
-    background: #e5e7eb;
-    border-color: #d1d5db;
-    color: #374151;
+    background: rgba(255, 255, 255, 0.3);
   }
 }

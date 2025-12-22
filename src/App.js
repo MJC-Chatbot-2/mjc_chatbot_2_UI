@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { UserProvider } from './contexts/UserContext';
 import Dashboard from './components/Dashboard';
 import ChatPage from './components/ChatPage';
-import MockupPage from './components/MockupPage';
 import AdminPage from './components/AdminPage';
 
 function App() {
@@ -15,7 +14,6 @@ function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/chat/:chatId" element={<ChatPage />} />
-            <Route path="/mockup" element={<MockupPage />} />
             <Route path="/admin" element={<AdminPage />} />
           </Routes>
         </div>
