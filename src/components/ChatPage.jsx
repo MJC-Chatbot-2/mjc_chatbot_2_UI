@@ -12,7 +12,7 @@ import {
 } from '../utils/chatApi';
 import './ChatPage.css';
 
-const NOTICE_API_URL = 'http://10.51.61.37:8010/api/notice/latest';
+const NOTICE_API_URL = process.env.REACT_APP_NOTICE_API_URL;
 
 function ChatPage() {
     const { chatId } = useParams();
