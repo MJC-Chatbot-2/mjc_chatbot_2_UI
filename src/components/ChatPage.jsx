@@ -168,6 +168,8 @@ function ChatPage() {
             content: typeof msg.content === "string" ? msg.content : ""
         }));
 
+        console.log('[ChatPage] 전송할 chatHistory:', chatHistory);
+
         // API 호출 (비동기 작업)
         try {
             const data = await sendChatMessage(message, chatHistory);

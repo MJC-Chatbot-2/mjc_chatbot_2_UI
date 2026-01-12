@@ -276,6 +276,24 @@ const Dashboard = () => {
               >
                 학사일정 확인
               </button>
+              <button 
+                onClick={() => {
+                  const question = '성적 확인 방법';
+                  handleNewChatWithQuestion(question);
+                }}
+                className="question-chip"
+              >
+                성적 확인 방법
+              </button>
+              <button 
+                onClick={() => {
+                  const question = '학점 이수 기준';
+                  handleNewChatWithQuestion(question);
+                }}
+                className="question-chip"
+              >
+                학점 이수 기준
+              </button>
             </div>
           </div>
         </div>

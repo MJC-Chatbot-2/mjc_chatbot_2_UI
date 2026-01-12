@@ -3,13 +3,49 @@
  * SSO 제거 - 대화 기록은 로컬스토리지에서 관리
  */
 
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://10.51.61.37:8000';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL
+/**
+ * 대화 히스토리 배열을 맥락 문자열로 변환
+ * 최근 대화를 사용하여 맥락 유지
+ */
+const buildChatContext = (chatHistory) => {
+  if (!chatHistory || chatHistory.length <= 1) {
+    return "";
+  }
+  
+  // 마지막 메시지(현재 질문)를 제외한 히스토리
+  const historyWithoutCurrent = chatHistory.slice(0, -1);
+  
+  // 최근 6개 메시지만 사용 (약 3쌍의 대화)
+  const recentHistory = historyWithoutCurrent.slice(-6);
+  
+  let context = "";
+  for (const msg of recentHistory) {
+    // 문자열 content만 사용 (JSX 컴포넌트 제외)
+    if (typeof msg.content !== 'string' || !msg.content.trim()) {
+      continue;
+    }
+    
+    if (msg.role === 'user') {
+      context += `사용자: ${msg.content}\n`;
+    } else if (msg.role === 'assistant') {
+      context += `챗봇: ${msg.content}\n\n`;
+    }
+  }
+  
+  console.log('[chatApi] 생성된 맥락:', context); // 디버깅용 로그
+  
+  return context.trim();
+};
 
 /**
  * 채팅 API 호출
  */
 export const sendChatMessage = async (message, chatHistory = []) => {
   try {
+    // 대화 히스토리를 맥락 문자열로 변환
+    const chatContext = buildChatContext(chatHistory);
+    
     const response = await fetch(`${API_BASE_URL}/api/chat_v`, {
       method: 'POST',
       headers: {
@@ -17,7 +53,7 @@ export const sendChatMessage = async (message, chatHistory = []) => {
       },
       body: JSON.stringify({
         message: message,
-        chat_history: chatHistory
+        chat_context: chatContext
       }),
     });
 
