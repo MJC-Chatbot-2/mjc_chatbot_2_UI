@@ -223,7 +223,7 @@ const Dashboard = () => {
 
           {/* 메인 제목 */}
           <h1 className="main-title">MJC AI Chat</h1>
-          <p className="main-subtitle">학사 관련 질문을 자유롭게 물어보세요</p>
+          <p className="main-subtitle">학사 및 진로 관련 질문을 자유롭게 물어보세요</p>
 
           {/* 새 채팅 시작 버튼 */}
           <button
@@ -293,6 +293,15 @@ const Dashboard = () => {
                 className="question-chip"
               >
                 학점 이수 기준
+              </button>
+              <button 
+                onClick={() => {
+                  const question = '학과 정보';
+                  handleNewChatWithQuestion(question);
+                }}
+                className="question-chip"
+              >
+                학과 정보
               </button>
             </div>
           </div>

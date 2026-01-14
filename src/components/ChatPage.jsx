@@ -83,7 +83,7 @@ function ChatPage() {
                         role: "ai",
                         content: (
                             <div>
-                                <div>안녕하세요! 명지전문대학 학사챗봇입니다.</div>
+                                <div>안녕하세요! 명지전문대학 학사 및 진로 챗봇입니다.</div>
                                 <div style={{ marginTop: "10px" }}>
                                     <strong>공지 사항 [{title}]</strong>
                                 </div>
@@ -101,7 +101,7 @@ function ChatPage() {
                         role: "ai",
                         content: (
                             <div>
-                                안녕하세요! 명지전문대학 학사챗봇입니다.<br />
+                                안녕하세요! 명지전문대학 학사 및 진로 챗봇입니다.<br />
                                 현재 공지 정보를 불러올 수 없습니다.
                             </div>
                         ),
@@ -116,7 +116,7 @@ function ChatPage() {
                     role: "ai",
                     content: (
                         <div>
-                            안녕하세요! 명지전문대학 학사챗봇입니다.<br />
+                            안녕하세요! 명지전문대학 학사 및 진로 챗봇입니다.<br />
                             (공지 정보를 불러오지 못했습니다.)
                         </div>
                     ),
